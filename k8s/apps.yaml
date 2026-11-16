@@ -1,0 +1,179 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: linksphere-secrets
+type: Opaque
+stringData:
+  DB_PASSWORD: linksphere_secret
+  JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linksphere-config
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/linksphere_db"
+  SPRING_DATASOURCE_USERNAME: "linksphere_user"
+  SPRING_DATA_REDIS_HOST: "redis-service"
+  SPRING_DATA_REDIS_PORT: "6379"
+  APP_SHORTENER_BASE_URL: "https://linksphere.dev/r"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linksphere-backend
+  labels:
+    app: linksphere-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: linksphere-backend
+  template:
+    metadata:
+      labels:
+        app: linksphere-backend
+    spec:
+      containers:
+        - name: backend
+          image: linksphere-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: linksphere-config
+          env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: linksphere-secrets
+                  key: DB_PASSWORD
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: linksphere-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1024Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: linksphere-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: linksphere-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linksphere-frontend
+  labels:
+    app: linksphere-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: linksphere-frontend
+  template:
+    metadata:
+      labels:
+        app: linksphere-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: linksphere-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: linksphere-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: linksphere-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  rules:
+    - host: linksphere.dev
+      http:
+        paths:
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 8080
+          - path: /r/
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80

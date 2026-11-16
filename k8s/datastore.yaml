@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    app: linksphere-postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linksphere-postgres
+  labels:
+    app: linksphere-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linksphere-postgres
+  template:
+    metadata:
+      labels:
+        app: linksphere-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: linksphere_db
+            - name: POSTGRES_USER
+              value: linksphere_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: linksphere-secrets
+                  key: DB_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: linksphere-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linksphere-redis
+  labels:
+    app: linksphere-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linksphere-redis
+  template:
+    metadata:
+      labels:
+        app: linksphere-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: linksphere-redis
+  ports:
+    - port: 6379
+      targetPort: 6379

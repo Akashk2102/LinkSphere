@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "LinkSphere API Collection",
+    "description": "Production API test suite for LinkSphere URL Shortener & Analytics platform.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"tester@linksphere.dev\",\n  \"password\": \"Password123!\",\n  \"fullName\": \"Test Engineer\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "2. Auth - Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.token) {",
+              "    pm.environment.set(\"jwt_token\", jsonData.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@linksphere.dev\",\n  \"password\": \"Demo12345!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "3. URLs - Create Short Link",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalUrl\": \"https://news.ycombinator.com\",\n  \"title\": \"Hacker News Top Stories\",\n  \"customAlias\": \"hn-frontpage\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "urls"]
+        }
+      }
+    },
+    {
+      "name": "4. URLs - List My Links",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls?page=0&size=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "urls"],
+          "query": [
+            { "key": "page", "value": "0" },
+            { "key": "size", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Redirect - Visit Short Code",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "User-Agent", "value": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)" },
+          { "key": "Referer", "value": "https://twitter.com/" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/r/spring-docs",
+          "host": ["{{baseUrl}}"],
+          "path": ["r", "spring-docs"]
+        }
+      }
+    },
+    {
+      "name": "6. Analytics - Get URL Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/urls/1/analytics",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "urls", "1", "analytics"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
