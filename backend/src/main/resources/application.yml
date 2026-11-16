@@ -37,3 +37,12 @@ app:
   shortener:
     base-url: ${APP_SHORTENER_BASE_URL:http://localhost:8080/r}
     default-ttl-days: 365
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
