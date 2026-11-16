@@ -35,4 +35,6 @@ public interface ShortUrlRepository extends JpaRepository<ShortUrl, Long> {
     @Modifying
     @Query("UPDATE ShortUrl s SET s.clickCount = s.clickCount + 1, s.updatedAt = CURRENT_TIMESTAMP WHERE s.id = :id")
     void incrementClickCount(@Param("id") Long id);
+
+    java.util.List<ShortUrl> findByIsActiveTrueAndExpiresAtBefore(java.time.Instant now);
 }
