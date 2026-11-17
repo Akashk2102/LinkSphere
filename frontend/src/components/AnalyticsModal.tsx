@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Smartphone, Globe, Compass, ExternalLink, Calendar } from 'lucide-react';
+import { X, Smartphone, Globe, Compass, Calendar } from 'lucide-react';
 import { api, AnalyticsData, UrlItem } from '../api/client';
 
 interface AnalyticsModalProps {
