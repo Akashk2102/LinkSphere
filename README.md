@@ -252,4 +252,4 @@ kubectl apply -f k8s/apps.yaml
 ---
 
 ## 📄 License
-This project is open-source under the [Apache 2.0 License](LICENSE).
+This project is open-source under the [MIT License](LICENSE).
