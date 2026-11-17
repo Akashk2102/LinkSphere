@@ -15,7 +15,7 @@
   <b>A production-grade, distributed URL shortening engine engineered for sub-millisecond redirection lookups, atomic click tracking, and privacy-first GDPR-compliant analytics.</b>
 </p>
 
-[Architecture Deep Dive](docs/ARCHITECTURE.md) • [API Documentation](docs/API_DOCUMENTATION.md) • [System Design Q&A](docs/INTERVIEW_PREP.md) • [Postman Collection](docs/LinkSphere.postman_collection.json)
+[Architecture Deep Dive](docs/ARCHITECTURE.md) • [API Documentation](docs/API_DOCUMENTATION.md) • [Postman Collection](docs/LinkSphere.postman_collection.json)
 
 </div>
 
@@ -31,7 +31,6 @@
 - [Quickstart: Run with Docker Compose](#-quickstart-run-with-docker-compose)
 - [Manual Local Development](#-manual-local-development)
 - [Production Kubernetes Deployment](#-production-kubernetes-deployment)
-- [Interview & System Design Guide](#-interview--system-design-guide)
 
 ---
 
@@ -249,21 +248,6 @@ kubectl apply -f k8s/datastore.yaml
 # Deploy backend with HPA (2-10 pods), frontend, and ingress
 kubectl apply -f k8s/apps.yaml
 ```
-
----
-
-## 🎯 Interview & System Design Guide
-
-LinkSphere was built to demonstrate architectural rigor for Senior / Staff Engineer technical interviews. Complete interview question breakdowns and model answers are available in:
-
-👉 **[docs/INTERVIEW_PREP.md](docs/INTERVIEW_PREP.md)**
-
-### Covered Interview Topics:
-1. *Why HTTP 302 Found instead of 301 Moved Permanently?*
-2. *Cache-Aside pattern and avoiding Thundering Herd / Cache Stampedes.*
-3. *Why `open-in-view: false` is vital for connection pool health in high-read APIs.*
-4. *How to prevent lost updates on concurrent click counting.*
-5. *Horizontal scaling via Kubernetes HPA and async event queues (Kafka / RabbitMQ).*
 
 ---
 
